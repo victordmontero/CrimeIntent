@@ -3,14 +3,20 @@ package com.phenombyte.criminalintent;
 import java.util.Date;
 import java.util.UUID;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.NavUtils;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -45,8 +51,11 @@ public class CrimeFragment extends Fragment {
 		UUID crimeId = (UUID) getArguments().getSerializable(EXTRA_CRIME_ID);
 
 		mCrime = CrimeLab.get(getActivity()).getCrime(crimeId);
+
+		setHasOptionsMenu(true);
 	}
 
+	@TargetApi(11)
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
@@ -54,6 +63,14 @@ public class CrimeFragment extends Fragment {
 
 		mEditText = (EditText) v.findViewById(R.id.crime_title);
 		mEditText.setText(mCrime.getTitle());
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+			if (NavUtils.getParentActivityIntent(getActivity()) != null) {
+				getActivity().getActionBar().setDisplayHomeAsUpEnabled(true);
+			}
+
+		}
+
 		mEditText.addTextChangedListener(new TextWatcher() {
 
 			@Override
@@ -122,5 +139,39 @@ public class CrimeFragment extends Fragment {
 	private void updateDate() {
 		mDateButton.setText(mCrime.getDate().toString());
 	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			if (NavUtils.getParentActivityIntent(getActivity()) != null) {
+				NavUtils.navigateUpFromSameTask(getActivity());
+			}
+			return true;
+
+		case R.id.menu_item_delete_crime:
+			
+			return true;
+			
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+
+	@Override
+	public void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+		CrimeLab.get(getActivity()).saveCrimes();
+	}
+
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		super.onCreateOptionsMenu(menu, inflater);
+		inflater.inflate(R.menu.crime_list_item_context, menu);
+	}
+	
+	
 
 }
